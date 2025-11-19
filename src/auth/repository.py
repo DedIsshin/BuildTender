@@ -1,0 +1,1 @@
+# zaprosi v basu dannyh || for example iz servisov hochesh vyszvat' parol' usera i otsuda ono propisano selectom usera

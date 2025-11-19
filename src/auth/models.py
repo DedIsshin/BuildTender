@@ -1,0 +1,3 @@
+# modelka po db
+
+

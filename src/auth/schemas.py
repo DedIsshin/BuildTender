@@ -1,0 +1,2 @@
+# modelka po pydantic
+

@@ -7,6 +7,10 @@ class Settings(BaseSettings):
     DB_USER : str
     DB_PASS : str
     DB_NAME : str
+    SECRET_KEY : str
+    ALGORITHM : str
+    ACCESS_TOKEN_EXPIRES_MINUTES : int
+    REFRESH_TOKEN_EXPIRES_DAYS : int
 
 
     @property

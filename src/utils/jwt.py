@@ -1,24 +1,29 @@
 #tokeny tut delaesh
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from jose import jwt, JWTError
+from uuid import UUID
 
-def create_access_token(user_id: int) -> str:
-    expire = datetime.utcnow() + timedelta(
-        minutes=settings.access_token_expires_minutes
+from src.config import settings
+
+def create_access_token(user_id: UUID) -> str:
+    expire = datetime.now(timezone.utc) + timedelta(
+        minutes=settings.ACCESS_TOKEN_EXPIRES_MINUTES
     )
     to_encode = {"sub": str(user_id), "exp": expire, "token_type": "access"}
     encoded_jwt = jwt.encode(
-        to_encode, settings.secret_key, algorithm=settings.algorithm
+        to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM
     )
     return encoded_jwt
 
 
-def create_refresh_token(user_id: int) -> str:
-    expire = datetime.utcnow() + timedelta(days=settings.refresh_token_expires_days)
+def create_refresh_token(user_id: UUID) -> str:
+    expire = datetime.now(timezone.utc) + timedelta(
+        days=settings.REFRESH_TOKEN_EXPIRES_DAYS
+    )
     to_encode = {"sub": str(user_id), "exp": expire, "token_type": "refresh"}
     encoded_jwt = jwt.encode(
-        to_encode, settings.secret_key, algorithm=settings.algorithm
+        to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM
     )
     return encoded_jwt
 
@@ -26,7 +31,7 @@ def create_refresh_token(user_id: int) -> str:
 def decode_token(token: str, expected_token_type: str):
     try:
         payload = jwt.decode(
-            token, settings.secret_key, algorithms=[settings.algorithm]
+            token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
         )
         token_type = payload.get("token_type")
         

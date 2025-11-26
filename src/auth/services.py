@@ -5,8 +5,9 @@ from fastapi import HTTPException
 
 
 from src.auth.repository import UserRepository
-from src.auth.schemas import UserCreate
+from src.auth.schemas import UserCreate, UserLogin, AuthToken
 from src.utils.security import get_password_hash, verify_password
+from src.utils.jwt import create_access_token, create_refresh_token
 
 class UserServices:
 
@@ -29,4 +30,29 @@ class UserServices:
             role=user_to_create.role,
             is_active=user_to_create.is_active,
         )
+    
+
+    async def login(self, user_to_login : UserLogin) -> AuthToken:
+        existing = await self.repository.get_user_by_mail(user_to_login.email)
+        if not existing:
+            raise HTTPException(status_code=400, detail="User doesn't exist")
+        verification = verify_password(user_to_login.password, existing.password_hash)
+        if not verification:
+            raise HTTPException(status_code=400, detail="Wrong password")
+        
+        user_access_token = create_access_token(existing.id)
+        user_refresh_token = create_refresh_token(existing.id)
+
+        user_refresh_token_hash = get_password_hash(user_refresh_token)
+
+        await self.repository.update_user_refresh_token(existing, user_refresh_token_hash)
+
+        return AuthToken(
+            access_token=user_access_token,
+            refresh_token=user_refresh_token
+        )
+        
+
+
+        
 

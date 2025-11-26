@@ -22,6 +22,21 @@ class UserRepository:
         await self.db.commit()
         await self.db.refresh(user)
         return user
+    
+
+    async def update_user_refresh_token(self, user : User, refresh_token_hash : str) -> User:
+        user.refresh_token_hash = refresh_token_hash
+        self.db.add(user)
+        await self.db.commit()
+        await self.db.refresh(user)
+        return user
+    
+
+    async def get_user_by_id(self, user_id : str) -> User | None:
+        stmt = select(User).where(User.id == user_id)
+        result = await self.db.execute(stmt)
+        return result.scalar_one_or_none()
+
 
 
 

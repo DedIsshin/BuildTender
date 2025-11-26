@@ -29,3 +29,14 @@ class UserRead(UserBase):
     id : UUID
     created_at : datetime
     updated_at: datetime
+
+
+class UserLogin(BaseModel):
+    email : EmailStr
+    password : str
+
+
+class AuthToken(BaseModel):
+    access_token: str
+    refresh_token: str
+    token_type: str = "bearer"

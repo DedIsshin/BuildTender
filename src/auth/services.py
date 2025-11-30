@@ -7,7 +7,7 @@ from fastapi import HTTPException
 from src.auth.repository import UserRepository
 from src.auth.schemas import UserCreate, UserLogin, AuthToken
 from src.utils.security import get_password_hash, verify_password
-from src.utils.jwt import create_access_token, create_refresh_token
+from src.utils.jwt import create_access_token, create_refresh_token, decode_token
 
 class UserServices:
 
@@ -51,6 +51,51 @@ class UserServices:
             access_token=user_access_token,
             refresh_token=user_refresh_token
         )
+    
+    async def change_user_pass(self, user_id : str, old_password : str, new_password : str):
+        existing = await self.repository.get_user_by_id(user_id)
+        if not existing:
+            raise HTTPException(status_code=400, detail="User doesn't exist")
+        verification = verify_password(old_password, existing.password_hash)
+        if not verification:
+            raise HTTPException(status_code=400, detail="Wrong password")
+        
+        hashed_pass = get_password_hash(new_password)
+
+        result = await self.repository.update_user_password_db(existing, hashed_pass)
+
+        if not result:
+            raise HTTPException(status_code=500, detail="Server error")
+        
+        return result
+    
+    async def check_user_refresh_token(self, user_refresh_token : str):
+        user_id = decode_token(user_refresh_token, expected_token_type="refresh")
+
+        existing = await self.repository.get_user_by_id(user_id)
+
+        if not existing:
+            raise HTTPException(status_code=400, detail="User doesn't exist")
+        
+        verification = verify_password(user_refresh_token, existing.refresh_token_hash)
+
+        if not verification:
+            raise HTTPException(status_code=400, detail="Invalid refresh token")
+
+        user_access_token = create_access_token(existing.id)
+        user_refresh_token = create_refresh_token(existing.id)
+
+        user_refresh_token_hash = get_password_hash(user_refresh_token)
+
+        await self.repository.update_user_refresh_token(existing, user_refresh_token_hash)
+
+        return AuthToken(
+            access_token=user_access_token,
+            refresh_token=user_refresh_token
+        )
+
+
+
         
 
 

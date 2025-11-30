@@ -32,6 +32,14 @@ class UserRepository:
         return user
     
 
+    async def update_user_password_db(self, user : User, new_password_hash : str) -> User:
+        user.password_hash = new_password_hash
+        self.db.add(user)
+        await self.db.commit()
+        await self.db.refresh(user)
+        return user
+    
+
     async def get_user_by_id(self, user_id : str) -> User | None:
         stmt = select(User).where(User.id == user_id)
         result = await self.db.execute(stmt)
